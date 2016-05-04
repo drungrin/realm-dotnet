@@ -445,6 +445,21 @@ namespace Realms
             return result;
         }
 
+        /// <summary>
+        /// Factory for a managed object in a realm. Only valid within a Write transaction.
+        /// </summary>
+        /// <remarks>Using CreateObject is more efficient than creating standalone objects, assigning their values, then using Manage because it avoids copying properties to the realm.</remarks>
+        /// <typeparam name="T">The Type T must not only be a RealmObject but also have been processd by the Fody weaver, so it has persistent properties.</typeparam>
+        /// <param name="initializer">Initializer of the managed object</param>
+        /// <returns>An object which is already managed.</returns>
+        /// <exception cref="RealmOutsideTransactionException">If you invoke this when there is no write Transaction active on the realm.</exception>
+        public T CreateObject<T>(Action<T> initializer) where T : RealmObject, new()
+        {
+            var result = CreateObject<T>();
+            initializer(result);
+            return result;
+        }
+    
         internal RealmObject MakeObjectForRow(Type objectType, RowHandle rowHandle)
         {
             RealmObject ret = Metadata[objectType].Helper.CreateInstance();
